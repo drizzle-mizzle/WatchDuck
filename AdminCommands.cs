@@ -27,6 +27,26 @@ namespace DuckBot.SlashCommands
             await message.AddReactionsAsync(new List<Emoji>() { DUCK_EMOJI, RADIO_EMOJI });
         }
 
+        [SlashCommand("spawn-duck-only", "-")]
+        public async Task SpawnDuckOnly(string title, string desc, string? footer = null)
+        {
+            var embed = new EmbedBuilder().WithTitle(title).WithDescription(desc);
+            if (footer is not null) embed.WithFooter(footer);
+
+            var message = await Context.Channel.SendMessageAsync(embed: embed.Build());
+            await message.AddReactionsAsync(new List<Emoji>() { DUCK_EMOJI });
+        }
+
+        [SlashCommand("spawn-sub-only", "-")]
+        public async Task SpawnSubOnly(string title, string desc, string? footer = null)
+        {
+            var embed = new EmbedBuilder().WithTitle(title).WithDescription(desc);
+            if (footer is not null) embed.WithFooter(footer);
+
+            var message = await Context.Channel.SendMessageAsync(embed: embed.Build());
+            await message.AddReactionsAsync(new List<Emoji>() { RADIO_EMOJI });
+        }
+
         [SlashCommand("shutdown", "Shutdown")]
         public async Task AdminShutdownAsync()
         {
