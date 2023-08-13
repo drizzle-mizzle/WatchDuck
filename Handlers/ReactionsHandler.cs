@@ -18,11 +18,12 @@ namespace DuckBot.Handlers
             _client.ReactionRemoved += HandleReactionRemovedAsync;
         }
 
-        private async Task HandleReactionAddedAsync(Cacheable<IUserMessage, ulong> rawMessage, Cacheable<IMessageChannel, ulong> discordChannel, SocketReaction reaction)
+        private async Task HandleReactionAddedAsync(Cacheable<IUserMessage, ulong> rawMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
         {
             try
             {
-                if (reaction.User.Value is not SocketGuildUser user) return;
+
+                if (reaction.User.GetValueOrDefault() is not SocketGuildUser user) return;
                 if (user.IsBot) return;
 
                 var message = await rawMessage.DownloadAsync();
@@ -43,11 +44,11 @@ namespace DuckBot.Handlers
             }
         }
 
-        private async Task HandleReactionRemovedAsync(Cacheable<IUserMessage, ulong> rawMessage, Cacheable<IMessageChannel, ulong> discordChannel, SocketReaction reaction)
+        private async Task HandleReactionRemovedAsync(Cacheable<IUserMessage, ulong> rawMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
         {
             try
             {
-                if (reaction?.User.Value is not SocketGuildUser user) return;
+                if (reaction.User.GetValueOrDefault() is not SocketGuildUser user) return;
                 if (user.IsBot) return;
 
                 var message = await rawMessage.DownloadAsync();
