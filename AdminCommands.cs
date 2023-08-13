@@ -19,10 +19,10 @@ namespace DuckBot.SlashCommands
         }
 
         [SlashCommand("post", "-")]
-        public async Task PostAsync(string title, string desc, Color? color = null, string? imgUrl = null, string? footer = null)
+        public async Task PostAsync(string title, string desc, string? imgUrl = null, string? footer = null)
         {
             await DeferAsync();
-            var embed = new EmbedBuilder().WithTitle(title).WithDescription(desc.Replace("\\n", "\n")).WithColor(color ?? Color.Green);
+            var embed = new EmbedBuilder().WithTitle(title).WithDescription(desc.Replace("\\n", "\n")).WithColor(Color.Green);
             if (imgUrl is not null) embed.WithImageUrl(imgUrl);
             if (footer is not null) embed.WithFooter(footer);
 

@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using DuckBot.Handlers;
 using DuckBot.Models.Common;
 using static DuckBot.Services.CommonService;
-using System;
 
 namespace DuckBot.Services
 {
