@@ -22,7 +22,6 @@ namespace DuckBot.Handlers
         {
             try
             {
-
                 if (reaction.User.GetValueOrDefault() is not SocketGuildUser user) return;
                 if (user.IsBot) return;
 
