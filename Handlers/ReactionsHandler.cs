@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 using static DuckBot.Services.CommonService;
 
 namespace DuckBot.Handlers
@@ -32,9 +33,9 @@ namespace DuckBot.Handlers
                 string? emojiName = reaction.Emote?.Name;
                 if (string.IsNullOrWhiteSpace(emojiName)) return;
 
-                if (FREE_EMOJIS.Contains(emojiName))
+                if (FREE_ROLES.ContainsKey(emojiName)
                 {
-                    await user.AddRoleAsync(channel.Guild.Roles.First(r => r.Name == emojiName));
+                    await user.AddRoleAsync(channel.Guild.Roles.First(r => r.Name == FREE_ROLES[emojiName]));
                 }
                 else { LogYellow("."); return; }
             }
@@ -58,9 +59,9 @@ namespace DuckBot.Handlers
                 string? emojiName = reaction.Emote?.Name;
                 if (string.IsNullOrWhiteSpace(emojiName)) return;
 
-                if (FREE_EMOJIS.Contains(emojiName))
+                if (FREE_ROLES.ContainsKey(emojiName)
                 {
-                    await user.RemoveRoleAsync(channel.Guild.Roles.First(r => r.Name == emojiName));
+                    await user.RemoveRoleAsync(channel.Guild.Roles.First(r => r.Name == FREE_ROLES[emojiName]));
                 }
                 else { LogYellow("."); return; }
             }
