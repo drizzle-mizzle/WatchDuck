@@ -18,7 +18,7 @@ namespace DuckBot.Handlers
             _client.ReactionRemoved += HandleReactionRemovedAsync;
         }
 
-        private async Task HandleReactionAddedAsync(Cacheable<IUserMessage, ulong> rawMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+        private async Task HandleReactionAddedAsync(Cacheable<IUserMessage, ulong> rawMessage, Cacheable<IMessageChannel, ulong> rawChannel, SocketReaction reaction)
         {
             try
             {
@@ -43,7 +43,7 @@ namespace DuckBot.Handlers
             }
         }
 
-        private async Task HandleReactionRemovedAsync(Cacheable<IUserMessage, ulong> rawMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+        private async Task HandleReactionRemovedAsync(Cacheable<IUserMessage, ulong> rawMessage, Cacheable<IMessageChannel, ulong> rawChannel, SocketReaction reaction)
         {
             try
             {
