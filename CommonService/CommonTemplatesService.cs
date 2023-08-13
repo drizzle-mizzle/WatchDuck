@@ -12,7 +12,7 @@ namespace DuckBot.Services
         internal static string DucklingsRole = "ducklings";
 
         internal static Emoji RADIO_EMOJI = new("\uD83D\uDCFB");
-        internal static string CharEngineSubscriberRole = "CharacterEngine Subscriber";
+        internal static string CharEngineSubscriberRole = "CharacterEngine sub";
 
         internal static string WAIT_MESSAGE = $"🕓 Wait...";
     }

@@ -7,6 +7,7 @@ using static DuckBot.Services.CommandsService;
 
 namespace DuckBot.SlashCommands
 {
+    [RequireUserPermission(GuildPermission.Administrator)]
     [Group("admin", "Admin commands")]
     public class AdminCommands : InteractionModuleBase<InteractionContext>
     {
@@ -17,34 +18,17 @@ namespace DuckBot.SlashCommands
             _client = services.GetRequiredService<DiscordSocketClient>();
         }
 
-        [SlashCommand("spawn-roles-selector", "-")]
-        public async Task SpawnRolesSelector(string title, string desc, string? footer = null)
+        [SlashCommand("post", "-")]
+        public async Task PostAsync(string title, string desc, Color? color = null, string? imgUrl = null, string? footer = null)
         {
-            var embed = new EmbedBuilder().WithTitle(title).WithDescription(desc);
+            await DeferAsync();
+            var embed = new EmbedBuilder().WithTitle(title).WithDescription(desc.Replace("\\n", "\n")).WithColor(color ?? Color.Green);
+            if (imgUrl is not null) embed.WithImageUrl(imgUrl);
             if (footer is not null) embed.WithFooter(footer);
 
-            var message = await Context.Channel.SendMessageAsync(embed: embed.Build());
-            await message.AddReactionsAsync(new List<Emoji>() { DUCK_EMOJI, RADIO_EMOJI });
-        }
+            await Context.Channel.SendMessageAsync(embed: embed.Build());
 
-        [SlashCommand("spawn-duck-only", "-")]
-        public async Task SpawnDuckOnly(string title, string desc, string? footer = null)
-        {
-            var embed = new EmbedBuilder().WithTitle(title).WithDescription(desc);
-            if (footer is not null) embed.WithFooter(footer);
-
-            var message = await Context.Channel.SendMessageAsync(embed: embed.Build());
-            await message.AddReactionsAsync(new List<Emoji>() { DUCK_EMOJI });
-        }
-
-        [SlashCommand("spawn-sub-only", "-")]
-        public async Task SpawnSubOnly(string title, string desc, string? footer = null)
-        {
-            var embed = new EmbedBuilder().WithTitle(title).WithDescription(desc);
-            if (footer is not null) embed.WithFooter(footer);
-
-            var message = await Context.Channel.SendMessageAsync(embed: embed.Build());
-            await message.AddReactionsAsync(new List<Emoji>() { RADIO_EMOJI });
+            await RespondAsync(text: ":duck:");
         }
 
         [SlashCommand("shutdown", "Shutdown")]
