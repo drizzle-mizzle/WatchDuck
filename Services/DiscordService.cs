@@ -28,27 +28,17 @@ namespace DuckBot.Services
             _services.GetRequiredService<SlashCommandsHandler>();
             _services.GetRequiredService<TextMessagesHandler>();
 
-            _client.Ready += () =>
+            _client.Ready += async () =>
             {
-                Task.Run(async () =>
-                {
-                    await _interactions.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
-                    foreach (var guild in _client.Guilds)
-                    {
-                        LogYellow($"Registerting commands to: {guild.Name}...");
-                        try { await CreateRolesAndSlashCommandsAsync(guild); }
-                        catch (Exception e) { LogRed($"Fail!\n{e}\n"); continue; }
-                        LogGreen("OK\n");
-                    }
-                });
-                return Task.CompletedTask;
-            };
+                LogGreen(new string('~', Console.WindowWidth));
+                Log($"Guilds: {_client.Guilds.Count}\n");
+                try { await _interactions.AddModulesAsync(Assembly.GetEntryAssembly(), _services); }
+                catch (Exception e) { LogException(new[] { e }); }
 
-            _client.JoinedGuild += (guild) =>
-            {
-                Task.Run(async () => await CreateRolesAndSlashCommandsAsync(guild));
-                return Task.CompletedTask;
+                foreach (var guild in _client.Guilds)
+                    await CreateRolesAndSlashCommandsAsync(guild);               
             };
+            _client.JoinedGuild += CreateRolesAndSlashCommandsAsync;
 
             await _client.LoginAsync(TokenType.Bot, ConfigFile.DiscordBotToken.Value);
             await _client.StartAsync();
@@ -58,7 +48,13 @@ namespace DuckBot.Services
 
         private async Task CreateRolesAndSlashCommandsAsync(SocketGuild guild)
         {
-            await _interactions.RegisterCommandsToGuildAsync(guild.Id);
+            LogYellow($"Registerting commands to: {guild.Name}...");
+
+            try { await _interactions.RegisterCommandsToGuildAsync(guild.Id); }
+            catch (Exception e) { LogRed($"Fail!\n{e}\n"); return; }
+
+            LogGreen("OK\n");
+
             if (!guild.Roles.Any(r => r.Name == DucklingsRole))
                 await guild.CreateRoleAsync(DucklingsRole);
 
