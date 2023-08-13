@@ -72,12 +72,11 @@ namespace DuckBot.Handlers
             bool userIsBadDuckling = await ValidateUser(context);
             if (userIsBadDuckling)
             {
-                if (userMessage.Author is SocketGuildUser user)
-                    await user.BanAsync();
+                await user.BanAsync();
 
                 foreach (var channel in context.Guild.Channels)
                     foreach(var message in await textChannel.GetMessagesAsync().FlattenAsync())
-                        if (Equals(message.Author.Id, context.Message.Author.Id))
+                        if (Equals(message.Author.Id, user.Id))
                             await message.DeleteAsync();
             }
         }
