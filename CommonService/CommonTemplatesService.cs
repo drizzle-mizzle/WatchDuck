@@ -22,7 +22,12 @@ namespace DuckBot.Services
         internal static string ROLE_SUB = "CharacterEngine sub";
         internal static string ROLE_SELFHOSTED = "Self-hosted";
 
-        internal static List<string> ALL_ROLES = new List<string>() { ROLE_DUCKLINGS, ROLE_FLEDGLING, ROLE_GROWNUP, ROLE_HATCHLING, ROLE_NESTLING, ROLE_SELFHOSTED, ROLE_SUB };
-        internal static List<string> FREE_EMOJIS = new List<string>() { ROLE_DUCKLINGS, ROLE_SUB, ROLE_SELFHOSTED };
+        internal static List<string> ALL_ROLES = new() { ROLE_DUCKLINGS, ROLE_FLEDGLING, ROLE_GROWNUP, ROLE_HATCHLING, ROLE_NESTLING, ROLE_SELFHOSTED, ROLE_SUB };
+        internal static Dictionary<string, string> FREE_ROLES = new()
+        {
+            { DUCK_EMOJI.Name, ROLE_DUCKLINGS },
+            { RADIO_EMOJI.Name, ROLE_SUB },
+            { KEYBOARD_EMOJI.Name, ROLE_SELFHOSTED }
+        };
     }
 }
