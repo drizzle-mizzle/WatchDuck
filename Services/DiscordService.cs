@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using DuckBot.Handlers;
 using DuckBot.Models.Common;
 using static DuckBot.Services.CommonService;
+using System;
 
 namespace DuckBot.Services
 {
@@ -29,15 +30,23 @@ namespace DuckBot.Services
 
             _client.Ready += () =>
             {
-                Task.Run(async () => await CreateRolesAndSlashCommandsAsync());
-                //Task.Run(async () => await RunJobs());
-
+                Task.Run(async () =>
+                {
+                    await _interactions.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
+                    foreach (var guild in _client.Guilds)
+                    {
+                        LogYellow($"Registerting commands to: {guild.Name}...");
+                        try { await CreateRolesAndSlashCommandsAsync(guild); }
+                        catch (Exception e) { LogRed($"Fail!\n{e}\n"); continue; }
+                        LogGreen("OK\n");
+                    }
+                });
                 return Task.CompletedTask;
             };
 
             _client.JoinedGuild += (guild) =>
             {
-                Task.Run(async () => await OnGuildJoinAsync(guild));
+                Task.Run(async () => await CreateRolesAndSlashCommandsAsync(guild));
                 return Task.CompletedTask;
             };
 
@@ -47,30 +56,16 @@ namespace DuckBot.Services
             await Task.Delay(-1);
         }
 
-        private async Task RunJobs()
+        private async Task CreateRolesAndSlashCommandsAsync(SocketGuild guild)
         {
-            while (true)
-            {
-                await Task.Delay(3_600_000); // 1 hour
-            }
+            await _interactions.RegisterCommandsToGuildAsync(guild.Id);
+            if (!guild.Roles.Any(r => r.Name == DucklingsRole))
+                await guild.CreateRoleAsync(DucklingsRole);
+
+            if (!guild.Roles.Any(r => r.Name == CharEngineSubscriberRole))
+                await guild.CreateRoleAsync(CharEngineSubscriberRole);
         }
 
-        private async Task OnGuildJoinAsync(SocketGuild guild)
-        {
-            try
-            {
-                await _interactions.RegisterCommandsToGuildAsync(guild.Id);
-                if (!guild.Roles.Any(r => r.Name == DucklingsRole))
-                    await guild.CreateRoleAsync(DucklingsRole);
-
-                if (!guild.Roles.Any(r => r.Name == CharEngineSubscriberRole))
-                    await guild.CreateRoleAsync(CharEngineSubscriberRole);
-            }
-            catch (Exception e)
-            {
-                LogException(new[] { e });
-            }
-        }
 
         internal static ServiceProvider CreateServices()
         {
@@ -83,24 +78,6 @@ namespace DuckBot.Services
                 .AddSingleton(new InteractionService(discordClient.Rest));
 
             return services.BuildServiceProvider();
-        }
-
-        private async Task CreateRolesAndSlashCommandsAsync()
-        {
-            await _interactions.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
-            foreach (var guild in _client.Guilds)
-            {
-                try
-                {
-                    await _interactions.RegisterCommandsToGuildAsync(guild.Id);
-                    if (!guild.Roles.Any(r => r.Name == DucklingsRole))
-                        await guild.CreateRoleAsync(DucklingsRole);
-
-                    if (!guild.Roles.Any(r => r.Name == CharEngineSubscriberRole))
-                        await guild.CreateRoleAsync(CharEngineSubscriberRole);
-                }
-                catch { continue; }
-            }
         }
 
         private static DiscordSocketClient CreateDiscordClient()
