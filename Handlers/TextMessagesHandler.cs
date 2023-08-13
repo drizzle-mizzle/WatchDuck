@@ -4,14 +4,14 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.RegularExpressions;
-using DuckBot.Models.Common;
 using static DuckBot.Services.CommonService;
-using System.Threading.Channels;
+
 
 namespace DuckBot.Handlers
 {
     internal partial class TextMessagesHandler
     {
+        private readonly Dictionary<ulong, ulong> Users = new();
         private readonly IServiceProvider _services;
         private readonly DiscordSocketClient _client;
 
@@ -42,6 +42,32 @@ namespace DuckBot.Handlers
             if (context.Guild is null) return;
             if (context.Channel is not SocketTextChannel textChannel) return;
             if (userMessage.Author.Id == context.Guild.OwnerId) return;
+            if (userMessage.Author is not SocketGuildUser user) return;
+
+            if (!Users.ContainsKey(user.Id)) Users.Add(user.Id, 0);
+            Users[user.Id]++;
+
+            ulong totalAmountOfMessages = Users[user.Id];
+            SocketRole? role;
+            switch (totalAmountOfMessages)
+            {
+                case 1:
+                    role = textChannel.Guild.Roles.FirstOrDefault(r => r.Name == ROLE_HATCHLING);
+                    if (role is not null) await user.AddRoleAsync(role);
+                    break;
+                case 5:
+                    role = textChannel.Guild.Roles.FirstOrDefault(r => r.Name == ROLE_NESTLING);
+                    if (role is not null) await user.AddRoleAsync(role);
+                    break;
+                case 50:
+                    role = textChannel.Guild.Roles.FirstOrDefault(r => r.Name == ROLE_FLEDGLING);
+                    if (role is not null) await user.AddRoleAsync(role);
+                    break;
+                case 100:
+                    role = textChannel.Guild.Roles.FirstOrDefault(r => r.Name == ROLE_GROWNUP);
+                    if (role is not null) await user.AddRoleAsync(role);
+                    break;
+            }
 
             bool userIsBadDuckling = await ValidateUser(context);
             if (userIsBadDuckling)
@@ -81,7 +107,7 @@ namespace DuckBot.Handlers
             if (_watchDog[currUserId].Value == 5)
             {
                 _watchDog.Remove(currUserId);
-                await context.Channel.SendMessageAsync(embed: $"{context.User.Mention} was a very, very bad duckling and accidentally fell out of the nest".ToInlineEmbed(Color.Magenta));
+                await context.Channel.SendMessageAsync(embed: $"{context.User.Mention} was a very, very bad duckling and *accidentally* has drown in the lake.".ToInlineEmbed(Color.Magenta));
                 return true;
             }
 
