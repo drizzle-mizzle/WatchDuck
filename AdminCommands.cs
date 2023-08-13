@@ -27,8 +27,7 @@ namespace DuckBot.SlashCommands
             if (footer is not null) embed.WithFooter(footer);
 
             await Context.Channel.SendMessageAsync(embed: embed.Build());
-
-            await RespondAsync(text: ":duck:");
+            await FollowupAsync(text: ":duck:");
         }
 
         [SlashCommand("shutdown", "Shutdown")]
@@ -51,5 +50,10 @@ namespace DuckBot.SlashCommands
             await _client.SetStatusAsync(status);
             await RespondAsync(embed: SuccessEmbed(), ephemeral: true);
         }
+
+        [SlashCommand("ping", "ping")]
+        public async Task Ping()
+            => await RespondAsync(embed: $":ping_pong: Pong! - {_client.Latency} ms".ToInlineEmbed(Color.Red));
+        
     }
 }

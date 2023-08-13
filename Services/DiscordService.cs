@@ -54,11 +54,11 @@ namespace DuckBot.Services
 
             LogGreen("OK\n");
 
-            if (!guild.Roles.Any(r => r.Name == DucklingsRole))
-                await guild.CreateRoleAsync(DucklingsRole);
-
-            if (!guild.Roles.Any(r => r.Name == CharEngineSubscriberRole))
-                await guild.CreateRoleAsync(CharEngineSubscriberRole);
+            foreach (string role in ALL_ROLES)
+            {
+                if (guild.Roles.Any(r => r.Name == role)) continue;
+                else await guild.CreateRoleAsync(role);
+            }
         }
 
 
