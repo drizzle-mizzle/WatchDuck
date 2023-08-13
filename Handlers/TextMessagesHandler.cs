@@ -45,7 +45,7 @@ namespace DuckBot.Handlers
             if (context.Channel is not SocketTextChannel textChannel) return;
             if (userMessage.Author.Id == context.Guild.OwnerId) return;
             if (userMessage.Author is not SocketGuildUser user) return;
-
+            
             LogGreen(".");
             if (!Users.ContainsKey(user.Id))
             {
@@ -55,13 +55,14 @@ namespace DuckBot.Handlers
                 ulong amount = 0;
                 foreach (var channel in context.Guild.Channels)
                 {
+                    LogYellow("+");
                     try
                     {
                         if (channel is SocketTextChannel stc)
-                            amount += (ulong)((await stc.GetMessagesAsync(1000).FlattenAsync())?.Where(m => m.Author.Id == user.Id)?.Count() ?? 0);
+                            amount += (ulong)((await stc.GetMessagesAsync().FlattenAsync())?.Where(m => m.Author.Id == user.Id)?.Count() ?? 0);
                     } catch { continue; };
                 }
-                LogYellow("...");
+                LogYellow("!");
             }
 
             LogGreen("-");
@@ -70,8 +71,7 @@ namespace DuckBot.Handlers
 
             LogGreen("!");
             bool userIsBadDuckling = await ValidateUser(context);
-
-            LogGreen("...");
+            LogGreen("+");
             if (userIsBadDuckling)
             {
                 await user.BanAsync();
@@ -81,6 +81,8 @@ namespace DuckBot.Handlers
                         if (Equals(message.Author.Id, user.Id))
                             await message.DeleteAsync();
             }
+            LogGreen("~");
+            Log("\n");
         }
 
         private async Task UpdateUserRoleAsync(SocketGuildUser user, SocketGuild guild)
