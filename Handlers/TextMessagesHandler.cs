@@ -44,7 +44,21 @@ namespace DuckBot.Handlers
             if (userMessage.Author.Id == context.Guild.OwnerId) return;
             if (userMessage.Author is not SocketGuildUser user) return;
 
-            if (!Users.ContainsKey(user.Id)) Users.Add(user.Id, 0);
+            if (!Users.ContainsKey(user.Id))
+            {
+                ulong amount = 0;
+                foreach (var channel in context.Guild.Channels)
+                {
+                    try
+                    {
+                        if (channel is SocketTextChannel stc)
+                            amount += (ulong)((await stc.GetMessagesAsync(1000).FlattenAsync())?.Where(m => m.Author.Id == user.Id)?.Count() ?? 0);
+                    } catch { continue; };
+                }
+                    
+                Users.Add(user.Id, amount);
+            }
+
             Users[user.Id]++;
 
             ulong totalAmountOfMessages = Users[user.Id];
@@ -52,20 +66,41 @@ namespace DuckBot.Handlers
             switch (totalAmountOfMessages)
             {
                 case 1:
+                    if (user.Roles.Any(r => r.Name == ROLE_HATCHLING || r.Name == ROLE_NESTLING || r.Name == ROLE_FLEDGLING || r.Name == ROLE_GROWNUP)) break;
+
                     role = textChannel.Guild.Roles.FirstOrDefault(r => r.Name == ROLE_HATCHLING);
                     if (role is not null) await user.AddRoleAsync(role);
+
                     break;
                 case 5:
+                    if (user.Roles.Any(r => r.Name == ROLE_NESTLING || r.Name == ROLE_FLEDGLING || r.Name == ROLE_GROWNUP)) break;
+
+                    var hatRole = textChannel.Guild.Roles.FirstOrDefault(r => r.Name == ROLE_HATCHLING);
+                    if (hatRole is not null) await user.RemoveRoleAsync(hatRole);
+
                     role = textChannel.Guild.Roles.FirstOrDefault(r => r.Name == ROLE_NESTLING);
                     if (role is not null) await user.AddRoleAsync(role);
+
                     break;
                 case 50:
+                    if (user.Roles.Any(r => r.Name == ROLE_FLEDGLING || r.Name == ROLE_GROWNUP)) break;
+
+                    var nestRole = textChannel.Guild.Roles.FirstOrDefault(r => r.Name == ROLE_NESTLING);
+                    if (nestRole is not null) await user.RemoveRoleAsync(nestRole);
+
                     role = textChannel.Guild.Roles.FirstOrDefault(r => r.Name == ROLE_FLEDGLING);
                     if (role is not null) await user.AddRoleAsync(role);
+
                     break;
                 case 100:
+                    if (user.Roles.Any(r => r.Name == ROLE_GROWNUP)) break;
+
+                    var fledRole = textChannel.Guild.Roles.FirstOrDefault(r => r.Name == ROLE_FLEDGLING);
+                    if (fledRole is not null) await user.RemoveRoleAsync(fledRole);
+
                     role = textChannel.Guild.Roles.FirstOrDefault(r => r.Name == ROLE_GROWNUP);
                     if (role is not null) await user.AddRoleAsync(role);
+
                     break;
             }
 
