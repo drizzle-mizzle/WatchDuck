@@ -22,7 +22,7 @@ namespace DuckBot.Handlers
         {
             try
             {
-                if (reaction.User.GetValueOrDefault() is not SocketGuildUser user) return;
+                if (reaction.User.GetValueOrDefault() is not SocketGuildUser user) { LogRed("."); return; }
                 if (user.IsBot) return;
 
                 var message = await rawMessage.DownloadAsync();
@@ -36,6 +36,7 @@ namespace DuckBot.Handlers
                 {
                     await user.AddRoleAsync(channel.Guild.Roles.First(r => r.Name == emojiName));
                 }
+                else { LogYellow("."); return; }
             }
             catch (Exception e)
             {
@@ -47,7 +48,7 @@ namespace DuckBot.Handlers
         {
             try
             {
-                if (reaction.User.GetValueOrDefault() is not SocketGuildUser user) return;
+                if (reaction.User.GetValueOrDefault() is not SocketGuildUser user) { LogRed("."); return; }
                 if (user.IsBot) return;
 
                 var message = await rawMessage.DownloadAsync();
@@ -61,6 +62,7 @@ namespace DuckBot.Handlers
                 {
                     await user.RemoveRoleAsync(channel.Guild.Roles.First(r => r.Name == emojiName));
                 }
+                else { LogYellow("."); return; }
             }
             catch (Exception e)
             {
