@@ -33,7 +33,7 @@ namespace DuckBot.Handlers
                 string? emojiName = reaction.Emote?.Name;
                 if (string.IsNullOrWhiteSpace(emojiName)) return;
 
-                if (FREE_ROLES.ContainsKey(emojiName)
+                if (FREE_ROLES.ContainsKey(emojiName))
                 {
                     await user.AddRoleAsync(channel.Guild.Roles.First(r => r.Name == FREE_ROLES[emojiName]));
                 }
@@ -59,7 +59,7 @@ namespace DuckBot.Handlers
                 string? emojiName = reaction.Emote?.Name;
                 if (string.IsNullOrWhiteSpace(emojiName)) return;
 
-                if (FREE_ROLES.ContainsKey(emojiName)
+                if (FREE_ROLES.ContainsKey(emojiName))
                 {
                     await user.RemoveRoleAsync(channel.Guild.Roles.First(r => r.Name == FREE_ROLES[emojiName]));
                 }
