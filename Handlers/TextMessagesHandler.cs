@@ -108,7 +108,7 @@ namespace DuckBot.Handlers
                 if (role is not null) await user.AddRoleAsync(role);
 
             }
-            else if (totalAmountOfMessages <= 50)
+            else if (totalAmountOfMessages <= 100)
             {
                 if (user.Roles.Any(r => r.Name == ROLE_FLEDGLING || r.Name == ROLE_GROWNUP)) return;
 
@@ -119,7 +119,7 @@ namespace DuckBot.Handlers
                 if (role is not null) await user.AddRoleAsync(role);
 
             }
-            else if (totalAmountOfMessages <= 100)
+            else if (totalAmountOfMessages <= 1000)
             {
                 if (user.Roles.Any(r => r.Name == ROLE_GROWNUP)) return;
 
