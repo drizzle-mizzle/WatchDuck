@@ -97,7 +97,7 @@ namespace DuckBot.Handlers
                 role = guild.Roles.FirstOrDefault(r => r.Name == ROLE_HATCHLING);
                 if (role is not null) await user.AddRoleAsync(role);
             }
-            else if (totalAmountOfMessages <= 10)
+            else if (totalAmountOfMessages < 100 && totalAmountOfMessages >= 10)
             {
                 if (user.Roles.Any(r => r.Name == ROLE_NESTLING || r.Name == ROLE_FLEDGLING || r.Name == ROLE_GROWNUP)) return;
 
@@ -108,7 +108,7 @@ namespace DuckBot.Handlers
                 if (role is not null) await user.AddRoleAsync(role);
 
             }
-            else if (totalAmountOfMessages <= 100)
+            else if (totalAmountOfMessages < 1000 && totalAmountOfMessages >= 100)
             {
                 if (user.Roles.Any(r => r.Name == ROLE_FLEDGLING || r.Name == ROLE_GROWNUP)) return;
 
@@ -119,7 +119,7 @@ namespace DuckBot.Handlers
                 if (role is not null) await user.AddRoleAsync(role);
 
             }
-            else if (totalAmountOfMessages <= 1000)
+            else if (totalAmountOfMessages >= 1000)
             {
                 if (user.Roles.Any(r => r.Name == ROLE_GROWNUP)) return;
 
