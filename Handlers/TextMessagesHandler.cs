@@ -76,8 +76,6 @@ namespace DuckBot.Handlers
                     var userMessages = (await textChannel.GetMessagesAsync(10).FlattenAsync()).Where(m => Equals(m.Author.Id, user.Id) && DateTime.UtcNow.Subtract(m.Timestamp.UtcDateTime).TotalMinutes < 5);
                     int l = Math.Min(userMessages.Count(), 5);
 
-                    LogGreen($"\nDeleting {l}/{userMessages.Count()} messages in channel {channel.Name} ");
-
                     foreach (var message in userMessages.ToArray()[0..l])
                     {
                         try
