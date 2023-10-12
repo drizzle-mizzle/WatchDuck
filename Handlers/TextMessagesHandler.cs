@@ -65,6 +65,7 @@ namespace DuckBot.Handlers
                 var badRole = context.Guild.Roles.FirstOrDefault(r => r.Name == BAD_DUCKLING);
                 if (badRole is null) return;
 
+                await RemoveAllDuckRolesAsync(user, context.Guild);
                 await user.AddRoleAsync(badRole);
                 _watchDog.Remove(user.Id);
 
@@ -90,6 +91,23 @@ namespace DuckBot.Handlers
                 Users.TryAdd(user.Id, 0);
                 Users[user.Id]++;
                 await UpdateUserRoleAsync(user, textChannel.Guild);
+            }
+        }
+
+        private async Task RemoveAllDuckRolesAsync(SocketGuildUser user, SocketGuild guild)
+        {
+            var ducklingRole = guild.Roles.FirstOrDefault(r => r.Name == ROLE_DUCKLINGS);
+            var hatRole = guild.Roles.FirstOrDefault(r => r.Name == ROLE_HATCHLING);
+            var nestRole = guild.Roles.FirstOrDefault(r => r.Name == ROLE_NESTLING);
+            var fledRole = guild.Roles.FirstOrDefault(r => r.Name == ROLE_FLEDGLING);
+            var grownRole = guild.Roles.FirstOrDefault(r => r.Name == ROLE_GROWNUP);
+
+            var allRoles = new SocketRole?[5] { ducklingRole, hatRole, nestRole, fledRole, grownRole };
+
+            foreach (var role in allRoles)
+            {
+                if (role is null) continue;
+                await user.RemoveRoleAsync(role.Id);
             }
         }
 
