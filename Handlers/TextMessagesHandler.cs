@@ -75,11 +75,21 @@ namespace DuckBot.Handlers
                 {
                     var allMessages = await textChannel.GetMessagesAsync(5).FlattenAsync();
                     foreach (var message in allMessages)
+                    {
                         if (Equals(message.Author.Id, user.Id))
                         {
-                            await message.DeleteAsync();
+                            try
+                            {
+                                await message.DeleteAsync();
+                            }
+                            catch
+                            {
+                                continue;
+                            }
+
                             await Task.Delay(300);
                         }
+                    }
                 });
 
                 return;
@@ -207,14 +217,12 @@ namespace DuckBot.Handlers
             bool result = false;
 
             // Warning
-            if (Equals(currUser.RepeatCount, 3))
+            if (currUser.RepeatCount == 3)
             {
                 LogYellow("!");
                 Task.Run(async () => await context.Message.ReplyAsync(embed: $"{context.User.Mention} Sssh...".ToInlineEmbed(Color.Orange)));
-            }
-
-            // Block
-            if (currUser.RepeatCount > 4)
+            } // Block
+            else if (currUser.RepeatCount > 4)
             {
                 LogRed("!");
                 Task.Run(async () => await context.Channel.SendMessageAsync(embed: $"{context.User.Mention} was a very, very bad duckling and *accidentally* has drown in the lake.".ToInlineEmbed(Color.Magenta)));
