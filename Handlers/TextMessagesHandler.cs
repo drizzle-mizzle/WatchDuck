@@ -84,6 +84,7 @@ namespace DuckBot.Handlers
             }
             else
             {
+                LogGreen(".");
                 // Start or continue tracking user level
                 Users.TryAdd(user.Id, 0);
                 Users[user.Id]++;
@@ -150,6 +151,7 @@ namespace DuckBot.Handlers
             // Start watching for user
             if (!_watchDog.ContainsKey(currUserId))
             {
+                LogYellow(".");
                 _watchDog.Add(currUserId, new()
                 {
                     MessageContent = context.Message.Content ?? "",
@@ -167,11 +169,13 @@ namespace DuckBot.Handlers
 
             if (contentIsSame && attachmentIsSame)
             {
+                LogYellow("!");
                 currUser.RepeatCount++;
                 return SpamLimitIsExceeded(currUser, context);
             }
             else
             {
+                LogGreen("!");
                 currUser.MessageContent = context.Message.Content ?? "";
                 currUser.ImageSize = context.Message.Attachments.FirstOrDefault()?.Size ?? 0;
                 currUser.RepeatCount = 0;
