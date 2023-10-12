@@ -70,14 +70,15 @@ namespace DuckBot.Handlers
 
                 // Delete messages
                 var allChannels = context.Guild.Channels;
-                await Parallel.ForEachAsync(allChannels, async (channel, ct) =>
+                Parallel.ForEach(allChannels, async (channel) =>
                 {
-                    var allMessages = await textChannel.GetMessagesAsync().FlattenAsync();
-                    await Parallel.ForEachAsync(allMessages, async (message, ct) =>
-                    {
+                    var allMessages = await textChannel.GetMessagesAsync(5).FlattenAsync();
+                    foreach (var message in allMessages)
                         if (Equals(message.Author.Id, user.Id))
+                        {
                             await message.DeleteAsync();
-                    });
+                            await Task.Delay(300);
+                        }
                 });
 
                 return;
