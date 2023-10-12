@@ -204,15 +204,15 @@ namespace DuckBot.Handlers
                 lock (_watchDog)
                 {
                     _watchDog[currUserId] = new() { MessageContent = currUser.MessageContent, ImageSize = currUser.ImageSize, RepeatCount = currUser.RepeatCount + 1 };
-                    return SpamLimitIsExceeded(_watchDog[currUserId], context);
                 }
+                return SpamLimitIsExceeded(_watchDog[currUserId], context);
             }
             else
             {
-                LogGreen("!");
-                currUser.MessageContent = context.Message.Content ?? "";
-                currUser.ImageSize = context.Message.Attachments.FirstOrDefault()?.Size ?? 0;
-                currUser.RepeatCount = 0;
+                lock (_watchDog)
+                {
+                    _watchDog[currUserId] = new() { MessageContent = context.Message.Content ?? "", ImageSize = context.Message.Attachments.FirstOrDefault()?.Size ?? 0, RepeatCount = 0 };
+                }
                 return false;
             }
         }
