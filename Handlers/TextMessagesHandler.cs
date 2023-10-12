@@ -26,7 +26,7 @@ namespace DuckBot.Handlers
         {
             public string MessageContent { get; set; }
             public int RepeatCount { get; set; }
-            public int? ImageSize { get; set; }
+            public int ImageSize { get; set; }
         }
 
         public TextMessagesHandler(IServiceProvider services)
@@ -154,7 +154,7 @@ namespace DuckBot.Handlers
                 {
                     MessageContent = context.Message.Content ?? "",
                     RepeatCount = 0,
-                    ImageSize = context.Message.Attachments.FirstOrDefault()?.Size
+                    ImageSize = context.Message.Attachments.FirstOrDefault()?.Size ?? 0
                 });
                 return false;
             }
@@ -163,20 +163,19 @@ namespace DuckBot.Handlers
 
             // Check if message is same as previous one
             bool contentIsSame = string.Equals(currUser.MessageContent, context.Message.Content);
-            bool attachmentIsSame = Equals(currUser.ImageSize, context.Message.Attachments.FirstOrDefault()?.Size);
+            bool attachmentIsSame = Equals(currUser.ImageSize, context.Message.Attachments.FirstOrDefault()?.Size ?? 0);
 
-            // Not spam
-            if (!(contentIsSame && attachmentIsSame))
-            {
-                currUser.MessageContent = context.Message.Content ?? "";
-                currUser.ImageSize = context.Message.Attachments.FirstOrDefault()?.Size;
-                currUser.RepeatCount = 0;
-                return false;
-            }
-            else // spam
+            if (contentIsSame && attachmentIsSame)
             {
                 currUser.RepeatCount++;
                 return SpamLimitIsExceeded(currUser, context);
+            }
+            else
+            {
+                currUser.MessageContent = context.Message.Content ?? "";
+                currUser.ImageSize = context.Message.Attachments.FirstOrDefault()?.Size ?? 0;
+                currUser.RepeatCount = 0;
+                return false;
             }
         }
 
@@ -188,7 +187,7 @@ namespace DuckBot.Handlers
                 return false;
             }
 
-            if (Equals(currUser.RepeatCount, 5))
+            if (currUser.RepeatCount > 4)
             {
                 
                 Task.Run(async () => await context.Channel.SendMessageAsync(embed: $"{context.User.Mention} was a very, very bad duckling and *accidentally* has drown in the lake.".ToInlineEmbed(Color.Magenta)));
