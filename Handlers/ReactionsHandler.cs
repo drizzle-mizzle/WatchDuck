@@ -26,6 +26,9 @@ namespace DuckBot.Handlers
                 if (reaction.User.GetValueOrDefault() is not SocketGuildUser user) { LogRed("."); return; }
                 if (user.IsBot) return;
 
+                bool userIsBadDuckling = user.Roles.Any(r => r.Name == BAD_DUCKLING);
+                if (userIsBadDuckling) return;
+
                 var message = await rawMessage.DownloadAsync();
                 if (message.Author.Id != _client.CurrentUser.Id) return;
                 if (message.Channel is not SocketGuildChannel channel) return;
