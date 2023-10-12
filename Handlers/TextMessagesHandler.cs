@@ -73,22 +73,23 @@ namespace DuckBot.Handlers
                 var allChannels = context.Guild.Channels;
                 Parallel.ForEach(allChannels, async (channel) =>
                 {
-                    var allMessages = await textChannel.GetMessagesAsync(5).FlattenAsync();
-                    foreach (var message in allMessages)
-                    {
-                        if (Equals(message.Author.Id, user.Id))
-                        {
-                            try
-                            {
-                                await message.DeleteAsync();
-                            }
-                            catch
-                            {
-                                continue;
-                            }
+                    var allMessages = (await textChannel.GetMessagesAsync(20).FlattenAsync()).Where(m => Equals(m.Author.Id, user.Id) && DateTime.UtcNow.Subtract(m.Timestamp.UtcDateTime).TotalMinutes < 5);
+                    int l = Math.Min(allMessages.Count(), 5);
 
-                            await Task.Delay(300);
+                    LogGreen($"\ndeleting {l} messages ");
+
+                    foreach (var message in allMessages.ToArray()[0..l])
+                    {
+                        try
+                        {
+                            await message.DeleteAsync();
                         }
+                        catch
+                        {
+                            continue;
+                        }
+
+                        await Task.Delay(500);
                     }
                 });
 
@@ -177,30 +178,34 @@ namespace DuckBot.Handlers
         {
             ulong currUserId = context.Message.Author.Id;
 
-            // Start watching for user
-            if (!_watchDog.ContainsKey(currUserId))
+            lock (_watchDog)
             {
-                LogYellow(".");
-                _watchDog.Add(currUserId, new()
+                // Start watching for user
+                if (!_watchDog.ContainsKey(currUserId))
                 {
-                    MessageContent = context.Message.Content ?? "",
-                    RepeatCount = 0,
-                    ImageSize = context.Message.Attachments.FirstOrDefault()?.Size ?? 0
-                });
-                return false;
+                    LogYellow(".");
+                    _watchDog.Add(currUserId, new()
+                    {
+                        MessageContent = context.Message.Content ?? "",
+                        RepeatCount = 0,
+                        ImageSize = context.Message.Attachments.FirstOrDefault()?.Size ?? 0
+                    });
+                    return false;
+                }
             }
 
             var currUser = _watchDog[currUserId];
-
             // Check if message is same as previous one
             bool contentIsSame = string.Equals(currUser.MessageContent, context.Message.Content);
             bool attachmentIsSame = Equals(currUser.ImageSize, context.Message.Attachments.FirstOrDefault()?.Size ?? 0);
 
             if (contentIsSame && attachmentIsSame)
             {
-                currUser.RepeatCount++;
-                _watchDog[currUserId] = new() { MessageContent = currUser.MessageContent, ImageSize = currUser.ImageSize, RepeatCount = currUser.RepeatCount + 1 };
-                return SpamLimitIsExceeded(_watchDog[currUserId], context);
+                lock (_watchDog)
+                {
+                    _watchDog[currUserId] = new() { MessageContent = currUser.MessageContent, ImageSize = currUser.ImageSize, RepeatCount = currUser.RepeatCount + 1 };
+                    return SpamLimitIsExceeded(_watchDog[currUserId], context);
+                }
             }
             else
             {
