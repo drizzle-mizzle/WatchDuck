@@ -133,7 +133,7 @@ namespace DuckBot.Handlers
             else if (totalAmountOfMessages >= 1000)
             {
                 bool hasTopRole = user.Roles.Any(userRole
-                    => string.Equals(userRole.Name, grownRole!.Name)));
+                    => string.Equals(userRole.Name, grownRole!.Name));
 
                 if (hasTopRole) return;
                 await user.RemoveRoleAsync(fledRole);
@@ -189,7 +189,7 @@ namespace DuckBot.Handlers
             if (Equals(currUser.RepeatCount, 5))
             {
                 
-                Task.Run(async () => await context.Channel.SendMessageAsync(embed: $"{context.User.Mention} was a very, very bad duckling and *accidentally* has drown in the lake.".ToInlineEmbed(Color.Magenta));
+                Task.Run(async () => await context.Channel.SendMessageAsync(embed: $"{context.User.Mention} was a very, very bad duckling and *accidentally* has drown in the lake.".ToInlineEmbed(Color.Magenta)));
                 return true;
             }
 
