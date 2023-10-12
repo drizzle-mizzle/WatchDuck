@@ -187,6 +187,8 @@ namespace DuckBot.Handlers
             bool result = false;
 
             // Warning
+            LogYellow(currUser.RepeatCount);
+            LogYellow(Equals(currUser.RepeatCount, 3).ToString());
             if (Equals(currUser.RepeatCount, 3))
             {
                 LogYellow("!");
