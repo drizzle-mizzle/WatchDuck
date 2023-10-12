@@ -71,14 +71,14 @@ namespace DuckBot.Handlers
 
                 // Delete messages
                 var allChannels = context.Guild.Channels;
-                Parallel.ForEach(allChannels, async (channel) =>
+                foreach (var channel in allChannels)
                 {
-                    var allMessages = (await textChannel.GetMessagesAsync(20).FlattenAsync()).Where(m => Equals(m.Author.Id, user.Id) && DateTime.UtcNow.Subtract(m.Timestamp.UtcDateTime).TotalMinutes < 5);
-                    int l = Math.Min(allMessages.Count(), 5);
+                    var userMessages = (await textChannel.GetMessagesAsync(10).FlattenAsync()).Where(m => Equals(m.Author.Id, user.Id) && DateTime.UtcNow.Subtract(m.Timestamp.UtcDateTime).TotalMinutes < 5);
+                    int l = Math.Min(userMessages.Count(), 5);
 
-                    LogGreen($"\ndeleting {l} messages ");
+                    LogGreen($"\nDeleting {l}/{userMessages.Count()} messages in channel {channel.Name} ");
 
-                    foreach (var message in allMessages.ToArray()[0..l])
+                    foreach (var message in userMessages.ToArray()[0..l])
                     {
                         try
                         {
@@ -88,10 +88,8 @@ namespace DuckBot.Handlers
                         {
                             continue;
                         }
-
-                        await Task.Delay(500);
                     }
-                });
+                }
 
                 return;
             }
