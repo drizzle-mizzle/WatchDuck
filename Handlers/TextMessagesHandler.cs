@@ -1,12 +1,11 @@
 ﻿using Discord;
-using Discord.Webhook;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using System.Data;
+using System;
 using System.Text.RegularExpressions;
 using static DuckBot.Services.CommonService;
-using Discord.Rest;
-using System.Data;
 
 namespace DuckBot.Handlers
 {
@@ -17,9 +16,16 @@ namespace DuckBot.Handlers
         private readonly DiscordSocketClient _client;
 
         /// <summary>
-        /// (User ID : [message content : repeat count])
+        /// (User ID : UserMessageData)
         /// </summary>
-        private readonly Dictionary<ulong, KeyValuePair<string, int>> _watchDog = new();
+        private readonly Dictionary<ulong, UserMessageData> _watchDog = new();
+
+        public struct UserMessageData
+        {
+            public string MessageContent { get; set; }
+            public int RepeatCount { get; set; }
+            public int? ImageSize { get; set; }
+        }
 
         public TextMessagesHandler(IServiceProvider services)
         {
@@ -45,118 +51,145 @@ namespace DuckBot.Handlers
             if (context.Channel is not SocketTextChannel textChannel) return;
             if (userMessage.Author.Id == context.Guild.OwnerId) return;
             if (userMessage.Author is not SocketGuildUser user) return;
-            
-            LogGreen(",");
-            if (!Users.ContainsKey(user.Id))
-            {
-                LogYellow("?");
-                Users.Add(user.Id, 0);
 
-                ulong amount = 0;
-                foreach (var channel in context.Guild.Channels)
+            // Already blocked
+            bool userIsBadDuckling = user.Roles.Any(r => r.Name == BAD_DUCKLING);
+            if (userIsBadDuckling) return;
+
+            // Try to block
+            if (IsSpam(context))
+            {
+                LogRed("!");
+                var badRole = context.Guild.Roles.FirstOrDefault(r => r.Name == BAD_DUCKLING);
+                if (badRole is null) return;
+
+                await user.AddRoleAsync(badRole);
+                _watchDog.Remove(user.Id);
+
+                // Delete messages
+                var allChannels = context.Guild.Channels;
+                await Parallel.ForEachAsync(allChannels, async (channel, ct) =>
                 {
-                    LogYellow("+");
-                    try
+                    var allMessages = await textChannel.GetMessagesAsync().FlattenAsync();
+                    await Parallel.ForEachAsync(allMessages, async (message, ct) =>
                     {
-                        if (channel is SocketTextChannel stc)
-                            amount += (ulong)((await stc.GetMessagesAsync().FlattenAsync())?.Where(m => m.Author.Id == user.Id)?.Count() ?? 0);
-                    } catch { continue; };
-                }
-                LogYellow("!");
-            }
-
-            LogGreen("-");
-            Users[user.Id]++;
-            await UpdateUserRoleAsync(user, textChannel.Guild);
-
-            LogGreen("!");
-            bool userIsBadDuckling = await ValidateUser(context);
-
-            LogGreen("+");
-            if (userIsBadDuckling)
-            {
-                await user.BanAsync();
-
-                foreach (var channel in context.Guild.Channels)
-                    foreach(var message in await textChannel.GetMessagesAsync().FlattenAsync())
                         if (Equals(message.Author.Id, user.Id))
                             await message.DeleteAsync();
+                    });
+                });
+
+                return;
             }
-            LogGreen("~\n");
+            else
+            {
+                // Start or continue tracking user level
+                Users.TryAdd(user.Id, 0);
+                Users[user.Id]++;
+                await UpdateUserRoleAsync(user, textChannel.Guild);
+            }
         }
 
         private async Task UpdateUserRoleAsync(SocketGuildUser user, SocketGuild guild)
         {
             ulong totalAmountOfMessages = Users[user.Id];
-            SocketRole? role;
+            
+            var hatRole = guild.Roles.FirstOrDefault(r => r.Name == ROLE_HATCHLING);
+            var nestRole = guild.Roles.FirstOrDefault(r => r.Name == ROLE_NESTLING);
+            var fledRole = guild.Roles.FirstOrDefault(r => r.Name == ROLE_FLEDGLING);
+            var grownRole = guild.Roles.FirstOrDefault(r => r.Name == ROLE_GROWNUP);
+            if (new SocketRole?[4] { hatRole, nestRole, fledRole, grownRole }.Any(r => r is null)) return;
+
+            var allRoles = new SocketRole[4] { hatRole!, nestRole!, fledRole!, grownRole! };
 
             if (totalAmountOfMessages <= 1)
             {
-                if (user.Roles.Any(r => r.Name == ROLE_HATCHLING || r.Name == ROLE_NESTLING || r.Name == ROLE_FLEDGLING || r.Name == ROLE_GROWNUP)) return;
+                bool hasTopRole = user.Roles.Any(userRole
+                    => allRoles[0..3].Any(topRole
+                        => string.Equals(userRole.Name, topRole.Name)));
 
-                role = guild.Roles.FirstOrDefault(r => r.Name == ROLE_HATCHLING);
-                if (role is not null) await user.AddRoleAsync(role);
+                if (hasTopRole) return;
+                await user.AddRoleAsync(hatRole);
             }
             else if (totalAmountOfMessages < 100 && totalAmountOfMessages >= 10)
             {
-                if (user.Roles.Any(r => r.Name == ROLE_NESTLING || r.Name == ROLE_FLEDGLING || r.Name == ROLE_GROWNUP)) return;
+                bool hasTopRole = user.Roles.Any(userRole
+                    => allRoles[1..3].Any(topRole
+                        => string.Equals(userRole.Name, topRole.Name)));
 
-                var hatRole = guild.Roles.FirstOrDefault(r => r.Name == ROLE_HATCHLING);
-                if (hatRole is not null) await user.RemoveRoleAsync(hatRole);
-
-                role = guild.Roles.FirstOrDefault(r => r.Name == ROLE_NESTLING);
-                if (role is not null) await user.AddRoleAsync(role);
-
+                if (hasTopRole) return;
+                await user.RemoveRoleAsync(hatRole);
+                await user.AddRoleAsync(nestRole);
             }
             else if (totalAmountOfMessages < 1000 && totalAmountOfMessages >= 100)
             {
-                if (user.Roles.Any(r => r.Name == ROLE_FLEDGLING || r.Name == ROLE_GROWNUP)) return;
+                bool hasTopRole = user.Roles.Any(userRole
+                    => allRoles[2..3].Any(topRole
+                        => string.Equals(userRole.Name, topRole.Name)));
 
-                var nestRole = guild.Roles.FirstOrDefault(r => r.Name == ROLE_NESTLING);
-                if (nestRole is not null) await user.RemoveRoleAsync(nestRole);
-
-                role = guild.Roles.FirstOrDefault(r => r.Name == ROLE_FLEDGLING);
-                if (role is not null) await user.AddRoleAsync(role);
-
+                if (hasTopRole) return;
+                await user.RemoveRoleAsync(nestRole);
+                await user.AddRoleAsync(fledRole);
             }
             else if (totalAmountOfMessages >= 1000)
             {
-                if (user.Roles.Any(r => r.Name == ROLE_GROWNUP)) return;
+                bool hasTopRole = user.Roles.Any(userRole
+                    => string.Equals(userRole.Name, grownRole!.Name)));
 
-                var fledRole = guild.Roles.FirstOrDefault(r => r.Name == ROLE_FLEDGLING);
-                if (fledRole is not null) await user.RemoveRoleAsync(fledRole);
-
-                role = guild.Roles.FirstOrDefault(r => r.Name == ROLE_GROWNUP);
-                if (role is not null) await user.AddRoleAsync(role);
+                if (hasTopRole) return;
+                await user.RemoveRoleAsync(fledRole);
+                await user.AddRoleAsync(grownRole);
             }
         }
 
-        internal async Task<bool> ValidateUser(SocketCommandContext context)
+        private bool IsSpam(SocketCommandContext context)
         {
             ulong currUserId = context.Message.Author.Id;
 
             // Start watching for user
             if (!_watchDog.ContainsKey(currUserId))
-                _watchDog.Add(currUserId, new(context.Message.Content ?? "", 0));
-
-            if (!string.Equals(_watchDog[currUserId].Key, context.Message.Content))
             {
-                _watchDog[currUserId] = new(context.Message.Content ?? "", 0);
+                _watchDog.Add(currUserId, new()
+                {
+                    MessageContent = context.Message.Content ?? "",
+                    RepeatCount = 0,
+                    ImageSize = context.Message.Attachments.FirstOrDefault()?.Size
+                });
                 return false;
             }
 
-            _watchDog[currUserId] = new(_watchDog[currUserId].Key, _watchDog[currUserId].Value + 1);
+            var currUser = _watchDog[currUserId];
 
-            if (_watchDog[currUserId].Value == 3)
+            // Check if message is same as previous one
+            bool contentIsSame = string.Equals(currUser.MessageContent, context.Message.Content);
+            bool attachmentIsSame = Equals(currUser.ImageSize, context.Message.Attachments.FirstOrDefault()?.Size);
+
+            // Not spam
+            if (!(contentIsSame && attachmentIsSame))
             {
-                await context.Message.ReplyAsync(embed: $"{context.User.Mention} Sssh...".ToInlineEmbed(Color.Orange));
+                currUser.MessageContent = context.Message.Content ?? "";
+                currUser.ImageSize = context.Message.Attachments.FirstOrDefault()?.Size;
+                currUser.RepeatCount = 0;
                 return false;
             }
-            
-            if (_watchDog[currUserId].Value == 5)
+            else // spam
             {
-                _watchDog.Remove(currUserId);
-                await context.Channel.SendMessageAsync(embed: $"{context.User.Mention} was a very, very bad duckling and *accidentally* has drown in the lake.".ToInlineEmbed(Color.Magenta));
+                currUser.RepeatCount++;
+                return SpamLimitIsExceeded(currUser, context);
+            }
+        }
+
+        private static bool SpamLimitIsExceeded(UserMessageData currUser, SocketCommandContext context)
+        {
+            if (Equals(currUser.RepeatCount, 3))
+            {
+                Task.Run(async () => await context.Message.ReplyAsync(embed: $"{context.User.Mention} Sssh...".ToInlineEmbed(Color.Orange)));
+                return false;
+            }
+
+            if (Equals(currUser.RepeatCount, 5))
+            {
+                
+                Task.Run(async () => await context.Channel.SendMessageAsync(embed: $"{context.User.Mention} was a very, very bad duckling and *accidentally* has drown in the lake.".ToInlineEmbed(Color.Magenta));
                 return true;
             }
 
