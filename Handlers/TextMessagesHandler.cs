@@ -61,7 +61,7 @@ namespace DuckBot.Handlers
             // Try to block
             if (IsSpam(context))
             {
-                LogRed("!");
+                LogRed(". ");
                 var badRole = context.Guild.Roles.FirstOrDefault(r => r.Name == BAD_DUCKLING);
                 if (badRole is null) return;
 
@@ -84,7 +84,7 @@ namespace DuckBot.Handlers
             }
             else
             {
-                LogGreen(".");
+                LogGreen(". ");
                 // Start or continue tracking user level
                 Users.TryAdd(user.Id, 0);
                 Users[user.Id]++;
@@ -169,7 +169,6 @@ namespace DuckBot.Handlers
 
             if (contentIsSame && attachmentIsSame)
             {
-                LogYellow("!");
                 currUser.RepeatCount++;
                 return SpamLimitIsExceeded(currUser, context);
             }
@@ -185,22 +184,26 @@ namespace DuckBot.Handlers
 
         private static bool SpamLimitIsExceeded(UserMessageData currUser, SocketCommandContext context)
         {
+            bool result = false;
+
+            // Warning
             if (Equals(currUser.RepeatCount, 3))
             {
+                LogYellow("!");
                 Task.Run(async () => await context.Message.ReplyAsync(embed: $"{context.User.Mention} Sssh...".ToInlineEmbed(Color.Orange)));
-                return false;
             }
 
+            // Block
             if (currUser.RepeatCount > 4)
             {
-                
+                LogRed("!");
                 Task.Run(async () => await context.Channel.SendMessageAsync(embed: $"{context.User.Mention} was a very, very bad duckling and *accidentally* has drown in the lake.".ToInlineEmbed(Color.Magenta)));
                 TryToReportInLogsChannel(context);
-                
-                return true;
+
+                result = true;
             }
 
-            return false;
+            return result;
         }
 
         private static void TryToReportInLogsChannel(SocketCommandContext context)
