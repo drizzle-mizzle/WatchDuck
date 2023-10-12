@@ -47,7 +47,7 @@ namespace DuckBot.Services
 
         private async Task CreateRolesAndSlashCommandsAsync(SocketGuild guild)
         {
-            LogYellow($"Registerting commands to: {guild.Name}...");
+            LogYellow($"Registerting commands to: {guild.Name}... ");
 
             try { await _interactions.RegisterCommandsToGuildAsync(guild.Id); }
             catch (Exception e) { LogRed($"Fail!\n{e}\n"); return; }

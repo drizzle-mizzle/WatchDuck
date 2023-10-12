@@ -7,6 +7,8 @@ namespace DuckBot.Models.Common
     {
         //public static ConfigField NoPermissionFile { get; } = new("no_permission_file");
         public static ConfigField DiscordBotToken { get; } = new("discord_bot_token");
+        public static ConfigField LogsChannelId { get; } = new("discord_logs_channel_id");
+
         private static JObject ConfigParsed { get; } = CommonService.TryToParseConfigFile();
 
         public class ConfigField

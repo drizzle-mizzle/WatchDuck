@@ -48,6 +48,9 @@ namespace DuckBot.Services
         public static bool ToBool(this string? str)
             => bool.Parse(str ?? "false");
 
+        public static ulong ToUlong(this string? str)
+            => str is null ? 0 : ulong.Parse(str);
+
         public static int ToInt(this string str)
             => int.Parse(str);
 

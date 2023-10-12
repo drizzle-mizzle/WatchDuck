@@ -6,6 +6,8 @@ using System.Data;
 using System;
 using System.Text.RegularExpressions;
 using static DuckBot.Services.CommonService;
+using DuckBot.Models.Common;
+using DuckBot.Services;
 
 namespace DuckBot.Handlers
 {
@@ -190,10 +192,36 @@ namespace DuckBot.Handlers
             {
                 
                 Task.Run(async () => await context.Channel.SendMessageAsync(embed: $"{context.User.Mention} was a very, very bad duckling and *accidentally* has drown in the lake.".ToInlineEmbed(Color.Magenta)));
+                TryToReportInLogsChannel(context);
+                
                 return true;
             }
 
             return false;
+        }
+
+        private static void TryToReportInLogsChannel(SocketCommandContext context)
+        {
+            try
+            {
+                var logsChannel = context.Guild.GetChannel(ConfigFile.LogsChannelId.Value.ToUlong());
+                if (logsChannel is ITextChannel textChannel)
+                {
+                    var embed = new EmbedBuilder()
+                        .WithColor(Color.Orange)
+                        .WithTitle("Spam detected")
+                        .WithDescription($"User: {context.User.Username}\n" +
+                                         $"Channel: {context.Channel.Name}\n" +
+                                         $"Message: `\"{context.Message.Content ?? "none"}\"`").Build();
+
+                    var attachment = context.Message.Attachments.FirstOrDefault();
+                    if (attachment is null)
+                        Task.Run(async () => await textChannel.SendMessageAsync(embed: embed));
+                    else
+                        Task.Run(async () => await textChannel.SendFileAsync(embed: embed, attachment: new FileAttachment(attachment.Url)));
+                }
+            }
+            catch { return; }
         }
 
         [GeneratedRegex("\\<(.*?)\\>")]

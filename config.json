@@ -1,3 +1,4 @@
 ﻿{
-    "discord_bot_token": "YOUR_BOT_TOKEN"    
+  "discord_bot_token": "YOUR_BOT_TOKEN",
+  "discord_logs_channel_id": 1138739879967215686
 }
