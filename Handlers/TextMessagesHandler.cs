@@ -170,7 +170,8 @@ namespace DuckBot.Handlers
             if (contentIsSame && attachmentIsSame)
             {
                 currUser.RepeatCount++;
-                return SpamLimitIsExceeded(currUser, context);
+                _watchDog[currUserId] = new() { MessageContent = currUser.MessageContent, ImageSize = currUser.ImageSize, RepeatCount = currUser.RepeatCount + 1 };
+                return SpamLimitIsExceeded(_watchDog[currUserId], context);
             }
             else
             {
@@ -187,8 +188,6 @@ namespace DuckBot.Handlers
             bool result = false;
 
             // Warning
-            LogYellow(currUser.RepeatCount);
-            LogYellow(Equals(currUser.RepeatCount, 3).ToString());
             if (Equals(currUser.RepeatCount, 3))
             {
                 LogYellow("!");
