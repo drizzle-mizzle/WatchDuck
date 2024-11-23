@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33815.320
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuckBot", "DuckBot.csproj", "{48BA126F-2764-4CF5-92AA-F1656C89EEFD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WatchDuckBot", "WatchDuckBot.csproj", "{48BA126F-2764-4CF5-92AA-F1656C89EEFD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
