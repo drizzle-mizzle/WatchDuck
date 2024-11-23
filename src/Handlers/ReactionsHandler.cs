@@ -70,7 +70,8 @@ internal class ReactionsHandler
                     return;
                 }
 
-                var user = _discordClient.GetUser((ulong)userId);
+                var guild = _discordClient.Guilds.First(g => g.Id == BotConfig.ADMIN_GUILD_ID);
+                var user = guild.GetUser((ulong)userId);
                 if (user is not IGuildUser guildUser || guildUser.IsDuckling() == false)
                 {
                     return;
@@ -86,7 +87,6 @@ internal class ReactionsHandler
                 {
                     return;
                 }
-
 
                 await guildUser.RemoveRoleAsync(RolesHelper.DUCKLINGS_ROLE.Id);
             }
